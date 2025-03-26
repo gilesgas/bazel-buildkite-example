@@ -1,6 +1,7 @@
 import subprocess
 from collections import defaultdict
 import json
+import os
 
 
 def run(command):
@@ -33,16 +34,17 @@ steps = []
 
 # Get a list of all of the paths that changed in the latest commit.
 changed_paths = run(["git", "diff-tree", "--name-only", "HEAD~1..HEAD"]).splitlines()
+changed_dirs = list(filter(lambda p: os.path.isdir(p), changed_paths))
 
 # For every changed path, build and test all targets.
-for path in changed_paths:
+for path in changed_dirs:
     step = make_step("bazel", f"Build and test //{path}", [
         f"bazel build //{path}/...",
         f"bazel test //{path}/..."
     ])
 
     # Query the path for any libraries.
-    libraries = run(["bazel", "query", f"kind(py_library, '//{path}:*')"]).splitlines()
+    libraries = run(["bazel", "query", f"kind(py_library, '//{path}/...')"]).splitlines()
 
     # For each one, determine whether it has any downstream dependencies. If it
     # does, and they aren't already in the list of paths to be build, add a step
