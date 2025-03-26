@@ -1,44 +1,44 @@
-from utils import run, group, is_dir, get_step, to_json
+from utils import run, group, command_step, to_json, dirs
 
 # By default, do nothing.
 steps = []
 
-# Get a list of all directories that were changed in the latest commit.
-changed_paths = run(["git", "diff-tree", "--name-only", "HEAD~1..HEAD"]).splitlines()
-changed_dirs = list(filter(lambda p: is_dir(f"{p}"), changed_paths))
+# Get a list of directories changed in the most recent commit.
+changed_paths = run(["git", "diff-tree", "--name-only", "HEAD~1..HEAD"])
+changed_dirs = dirs(changed_paths)
 
-# Query the Bazel workspace for a list of all Bazel packages.
-packages = run(["bazel", "query", "'/...'"]).splitlines()
+# Query the Bazel workspace for a list of all packages (libraries, binaries, etc.).
+all_packages = run(["bazel", "query", "'/...'"])
 
-# Filter the list of changed dire
-package_paths = [p for p in changed_dirs if p in group(packages)]
+# Using both lists, assemble a list of affected Bazel packages.
+changed_packages = [p for p in changed_dirs if p in group(all_packages)]
 
-# For every changed path, build and test all targets.
-for path in package_paths:
-    step = get_step(path, "bazel", f"Build and test //{path}/...", [
-        f"bazel build //{path}/...",
-        f"bazel test //{path}/..."
+# For each changed package, build and test all of its targets.
+for pkg in changed_packages:
+    package_step = command_step(pkg, "bazel", f"Build and test //{pkg}/...", [
+        f"bazel build //{pkg}/...",
+        f"bazel test //{pkg}/..."
     ])
 
-    # Query the path for any libraries.
-    libs = run(["bazel", "query", f"kind(py_library, '//{path}/...')"]).splitlines()
+    # Query the package for any Python libraries.
+    libraries = run(["bazel", "query", f"kind(py_library, '//{pkg}/...')"])
 
-    # For each one, determine whether it has any downstream dependencies. If it
-    # does, and they aren't already in the list of paths to be build, add a step
-    # to build and test them as well.
-    for lib in libs:
-        rdeps = run(["bazel", "query", f"rdeps(//..., //{path}/...)"]).splitlines()
-        affected_paths = group(rdeps, path)
-        to_build = [p for p in affected_paths if p not in changed_paths]
+    # If the package does contain libraries, query the Bazel graph to assemble a
+    # list of each library's reverse dependencies (i.e., the packages that
+    # depend on it), adding a step to the Buildkite pipeline dynamically to
+    # build and test each one. (Skipping the ones that have already been queued.)
+    for lib in libraries:
+        reverse_deps = run(["bazel", "query", f"rdeps(//..., //{pkg}/...)"])
+        rdeps_to_build = [p for p in group(reverse_deps, pkg) if p not in changed_packages]
 
-        for dep in to_build:
-            next_step = get_step(dep, "bazel", f"Build and test downstream //{dep}/...", [
+        for dep in rdeps_to_build:
+            rdep_step = command_step(dep, "bazel", f"Build and test downstream //{dep}/...", [
                 f"bazel build //{dep}/...",
                 f"bazel test //{dep}/..."
             ])
-            next_step["depends_on"] = path
-            step["commands"].append(f"""echo '{json({"steps": [next_step]})}' | buildkite-agent pipeline upload""")
+            rdep_step["depends_on"] = pkg
+            package_step["commands"].append(f"""echo '{to_json({"steps": [rdep_step]})}' | buildkite-agent pipeline upload""")
 
-    steps.append(step)
+    steps.append(package_step)
 
-print(json({"steps": steps}, 4))
+print(to_json({"steps": steps}, 4))
