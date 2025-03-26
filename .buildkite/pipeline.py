@@ -1,13 +1,16 @@
 from utils import run, group, is_dir, get_step, to_json
 
-
 # By default, do nothing.
 steps = []
 
-# Get a list of all of the paths that changed in the latest commit.
+# Get a list of all directories that were changed in the latest commit.
 changed_paths = run(["git", "diff-tree", "--name-only", "HEAD~1..HEAD"]).splitlines()
 changed_dirs = list(filter(lambda p: is_dir(f"{p}"), changed_paths))
+
+# Query the Bazel workspace for a list of all Bazel packages.
 packages = run(["bazel", "query", "'/...'"]).splitlines()
+
+# Filter the list of changed dire
 package_paths = [p for p in changed_dirs if p in group(packages)]
 
 # For every changed path, build and test all targets.
@@ -34,8 +37,8 @@ for path in package_paths:
                 f"bazel test //{dep}/..."
             ])
             next_step["depends_on"] = path
-            step["commands"].append(f"""echo '{to_json({"steps": [next_step]})}' | buildkite-agent pipeline upload""")
+            step["commands"].append(f"""echo '{json({"steps": [next_step]})}' | buildkite-agent pipeline upload""")
 
     steps.append(step)
 
-print(to_json({"steps": steps}, 4))
+print(json({"steps": steps}, 4))
