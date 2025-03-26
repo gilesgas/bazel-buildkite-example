@@ -56,7 +56,7 @@ for path in buildable_dirs:
         to_build = [item for item in affected_paths if item not in changed_paths]
 
         for dep in to_build:
-            next_step = make_step(dep, "bazel", f"Build and test //{dep}/...", [
+            next_step = make_step(dep, "bazel", f"Build and test downstream //{dep}/...", [
                 f"bazel build //{dep}/...",
                 f"bazel test //{dep}/..."
             ])
