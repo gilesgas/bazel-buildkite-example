@@ -3,7 +3,6 @@ from collections import defaultdict
 import json
 import os
 
-
 def run(command):
     return subprocess.run(
         command, capture_output=True, text=True, check=True
@@ -34,7 +33,7 @@ steps = []
 
 # Get a list of all of the paths that changed in the latest commit.
 changed_paths = run(["git", "diff-tree", "--name-only", "HEAD~1..HEAD"]).splitlines()
-changed_dirs = list(filter(lambda p: os.path.isdir(p), changed_paths))
+changed_dirs = list(filter(lambda p: os.path.isdir(p) and p != "pipeline", changed_paths))
 
 # For every changed path, build and test all targets.
 for path in changed_dirs:
