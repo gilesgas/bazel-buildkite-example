@@ -1,4 +1,4 @@
-from utils import run, group, command_step, to_json, dirs
+from utils import run, to_paths, command_step, to_json, dirs
 
 # By default, do nothing.
 steps = []
@@ -11,7 +11,7 @@ changed_dirs = dirs(changed_paths)
 all_packages = run(["bazel", "query", "'/...'"])
 
 # Using both lists, assemble a list of affected Bazel packages.
-changed_packages = [p for p in changed_dirs if p in group(all_packages)]
+changed_packages = [p for p in changed_dirs if p in to_paths(all_packages)]
 
 # For each changed package, build and test all of its targets.
 for pkg in changed_packages:
@@ -26,10 +26,10 @@ for pkg in changed_packages:
     # If the package does contain libraries, query the Bazel graph to assemble a
     # list of each library's reverse dependencies (i.e., the packages that
     # depend on it), adding a step to the Buildkite pipeline dynamically to
-    # build and test each one. (Skipping the ones that have already been queued.)
+    # build and test each one. (Skipping the ones that have already been queued).
     for lib in libraries:
         reverse_deps = run(["bazel", "query", f"rdeps(//..., //{pkg}/...)"])
-        rdeps_to_build = [p for p in group(reverse_deps, pkg) if p not in changed_packages]
+        rdeps_to_build = [p for p in to_paths(reverse_deps, pkg) if p not in changed_packages]
 
         for dep in rdeps_to_build:
             rdep_step = command_step(dep, "bazel", f"Build and test downstream //{dep}/...", [
