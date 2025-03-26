@@ -30,7 +30,6 @@ for pkg in changed_packages:
 
         for dep in rdeps_to_build:
             rdep_step = build_test_and_annotate(dep, pkg)
-            rdep_step["depends_on"] = pkg
             package_step["commands"].append(f"""echo '{to_json({"steps": [rdep_step]})}' | buildkite-agent pipeline upload""")
 
     steps.append(package_step)
