@@ -1,5 +1,16 @@
 from utils import run, to_paths, command_step, to_json, dirs
 
+def build_and_test(package, depends_on=None):
+    return command_step(package, "bazel", f"Build and test //{package}/...", [
+        f"bazel build //{package}/... --build_event_json_file=bazel-events.json",
+        f"bazel test //{package}/...",
+    ], [{
+        "mcncl/bazel-annotate#v0.1.0": {
+            "bep_file": "bazel-events.json",
+            "skip_if_no_bep": True,
+        }
+    }], depends_on)
+
 # By default, do nothing.
 steps = []
 
@@ -15,10 +26,7 @@ changed_packages = [p for p in changed_dirs if p in to_paths(all_packages)]
 
 # For each changed package, build and test all of its targets.
 for pkg in changed_packages:
-    package_step = command_step(pkg, "bazel", f"Build and test //{pkg}/...", [
-        f"bazel build //{pkg}/...",
-        f"bazel test //{pkg}/..."
-    ])
+    package_step = build_and_test(pkg)
 
     # Query the package for any Python libraries.
     libraries = run(["bazel", "query", f"kind(py_library, '//{pkg}/...')"])
@@ -32,10 +40,7 @@ for pkg in changed_packages:
         rdeps_to_build = [p for p in to_paths(reverse_deps, pkg) if p not in changed_packages]
 
         for dep in rdeps_to_build:
-            rdep_step = command_step(dep, "bazel", f"Build and test downstream //{dep}/...", [
-                f"bazel build //{dep}/...",
-                f"bazel test //{dep}/..."
-            ])
+            rdep_step = build_and_test(dep, pkg)
             rdep_step["depends_on"] = pkg
             package_step["commands"].append(f"""echo '{to_json({"steps": [rdep_step]})}' | buildkite-agent pipeline upload""")
 
