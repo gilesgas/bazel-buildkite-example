@@ -8,8 +8,6 @@ def run(command):
         command, capture_output=True, text=True, check=True
     ).stdout.strip()
 
-print(run(["ls", "-al"]))
-
 def make_step(emoji, label, commands=[], plugins=[]):
     step = {"label": f":{emoji}: {label}", "commands": commands}
 
