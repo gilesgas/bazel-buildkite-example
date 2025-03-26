@@ -56,11 +56,11 @@ for path in buildable_dirs:
         to_build = [item for item in affected_paths if item not in changed_paths]
 
         for dep in to_build:
-            next_step = make_step("", f"Build and test //{dep}", [
+            next_step = make_step("bazel", f"Build and test //{dep}", [
                 f"bazel build //{path}/...",
                 f"bazel test //{path}/..."
             ])
-            step["commands"].append(f"""echo "{json.dumps({"steps": next_step})}" | buildkite-agent pipeline upload""")
+            step["commands"].append(f"""echo ""{json.dumps({"steps": next_step})}""s | buildkite-agent pipeline upload""")
 
     steps.append(step)
 
