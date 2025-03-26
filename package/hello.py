@@ -1,3 +1,3 @@
-# Respond with a friendly greeting.
+# Say hello!
 def say_hi():
     return "Hi!"
