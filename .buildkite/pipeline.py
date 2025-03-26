@@ -2,11 +2,11 @@ from utils import run, to_paths, command_step, to_json, dirs
 
 def build_and_test(package, depends_on=None):
     return command_step(package, "bazel", f"Build and test //{package}/...", [
-        f"bazel build //{package}/... --build_event_json_file=bazel-events.json",
+        f"bazel build //{package}/... --build_event_json_file=bazel-events-{package}.json",
         f"bazel test //{package}/...",
     ], [{
         "mcncl/bazel-annotate#v0.1.0": {
-            "bep_file": "bazel-events.json",
+            "bep_file": f"bazel-events-{package}.json",
             "skip_if_no_bep": True,
         }
     }], depends_on)
