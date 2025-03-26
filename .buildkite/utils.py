@@ -39,7 +39,7 @@ def build_test_and_annotate(package, depends_on=None):
     return command_step(package, "bazel", f"Build and test //{package}/...", [
         f"bazel test //{package}/... --build_event_json_file=bazel-events-{package}.json",
     ], [{
-        "mcncl/bazel-annotate#v0.1.0": {
+        "buildkite-plugins/bazel-annotate#v0.1.0": {
             "bep_file": f"bazel-events-{package}.json",
             "skip_if_no_bep": True,
         }
