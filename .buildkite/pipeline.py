@@ -60,7 +60,7 @@ for path in buildable_dirs:
                 f"bazel build //{path}/...",
                 f"bazel test //{path}/..."
             ])
-            step["commands"].append(f"""echo '{json.dumps({"steps": next_step})}' | buildkite-agent pipeline upload""")
+            step["commands"].append(f"""echo "{json.dumps({"steps": next_step})}" | buildkite-agent pipeline upload""")
 
     steps.append(step)
 

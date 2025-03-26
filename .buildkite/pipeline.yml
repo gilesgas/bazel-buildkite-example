@@ -1,4 +1,4 @@
 steps:
-  - label: ":python: Generate the Pipeline"
+  - label: ":python: Generate the dynamic pipeline dynamically (based on the content of the change)"
     commands:
       - python3 .buildkite/pipeline.py | buildkite-agent pipeline upload
