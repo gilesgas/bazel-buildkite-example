@@ -1,68 +1,41 @@
-import subprocess
-from collections import defaultdict
-import json
-import os
+from utils import run, group, is_dir, get_step, to_json
 
-def run(command):
-    return subprocess.run(
-        command, capture_output=True, text=True, check=True
-    ).stdout.strip()
-
-def make_step(key, emoji, label, commands=[], plugins=[]):
-    step = {"key": key, "label": f":{emoji}: {label}", "commands": commands}
-
-    if len(plugins) > 0:
-        step[plugins] = {"plugins": plugins}
-
-    return step
-
-def group_targets(targets, exclude=None):
-    groups = set()
-    
-    for target in targets:
-        directory, _, _ = target.rpartition(":")
-        groups.add(directory.lstrip("/"))
-    
-    if exclude:
-        groups.discard(exclude)
-    
-    return list(groups)
 
 # By default, do nothing.
 steps = []
 
 # Get a list of all of the paths that changed in the latest commit.
 changed_paths = run(["git", "diff-tree", "--name-only", "HEAD~1..HEAD"]).splitlines()
-changed_dirs = list(filter(lambda p: os.path.isdir(f"{p}"), changed_paths))
-bazel_paths = run(["bazel", "query", "'/...'"]).splitlines()
-buildable_dirs = [item for item in changed_dirs if item in group_targets(bazel_paths)]
+changed_dirs = list(filter(lambda p: is_dir(f"{p}"), changed_paths))
+packages = run(["bazel", "query", "'/...'"]).splitlines()
+package_paths = [p for p in changed_dirs if p in group(packages)]
 
 # For every changed path, build and test all targets.
-for path in buildable_dirs:
-    step = make_step(path, "bazel", f"Build and test //{path}/...", [
+for path in package_paths:
+    step = get_step(path, "bazel", f"Build and test //{path}/...", [
         f"bazel build //{path}/...",
         f"bazel test //{path}/..."
     ])
 
     # Query the path for any libraries.
-    libraries = run(["bazel", "query", f"kind(py_library, '//{path}/...')"]).splitlines()
+    libs = run(["bazel", "query", f"kind(py_library, '//{path}/...')"]).splitlines()
 
     # For each one, determine whether it has any downstream dependencies. If it
     # does, and they aren't already in the list of paths to be build, add a step
     # to build and test them as well.
-    for library in libraries:
+    for lib in libs:
         rdeps = run(["bazel", "query", f"rdeps(//..., //{path}/...)"]).splitlines()
-        affected_paths = group_targets(rdeps, path)
-        to_build = [item for item in affected_paths if item not in changed_paths]
+        affected_paths = group(rdeps, path)
+        to_build = [p for p in affected_paths if p not in changed_paths]
 
         for dep in to_build:
-            next_step = make_step(dep, "bazel", f"Build and test downstream //{dep}/...", [
+            next_step = get_step(dep, "bazel", f"Build and test downstream //{dep}/...", [
                 f"bazel build //{dep}/...",
                 f"bazel test //{dep}/..."
             ])
             next_step["depends_on"] = path
-            step["commands"].append(f"""echo '{json.dumps({"steps": [next_step]})}' | buildkite-agent pipeline upload""")
+            step["commands"].append(f"""echo '{to_json({"steps": [next_step]})}' | buildkite-agent pipeline upload""")
 
     steps.append(step)
 
-print(json.dumps({"steps": steps}, indent=4))
+print(to_json({"steps": steps}, indent=4))
