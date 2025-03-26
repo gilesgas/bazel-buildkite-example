@@ -38,4 +38,4 @@ for path in package_paths:
 
     steps.append(step)
 
-print(to_json({"steps": steps}, indent=4))
+print(to_json({"steps": steps}, 4))

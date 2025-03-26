@@ -25,5 +25,5 @@ def get_step(key, emoji, label, commands=[], plugins=[]):
         step[plugins] = {"plugins": plugins}
     return step
 
-def to_json(data):
-    return json.dumps(data)
+def to_json(data, indent=None):
+    return json.dumps(data, indent=indent)
