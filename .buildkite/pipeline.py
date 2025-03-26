@@ -34,8 +34,6 @@ steps = []
 # Get a list of all of the paths that changed in the latest commit.
 changed_paths = run(["git", "diff-tree", "--name-only", "HEAD~1..HEAD"]).splitlines()
 changed_dirs = list(filter(lambda p: os.path.isdir(f"{p}"), changed_paths))
-bazel_paths = run(["bazel", "query", "//..."]).splitlines()
-buildable_dirs = [item for item in changed_dirs if item in bazel_paths]
 
 # For every changed path, build and test all targets.
 for path in changed_dirs:
