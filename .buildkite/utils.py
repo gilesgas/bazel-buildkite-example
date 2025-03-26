@@ -1,16 +1,14 @@
 import json, os, subprocess
 
-# Runs an OS command.
+# Runs an OS command and returns a list of the lines comprising the result.
 def run(command):
-    return subprocess.run(command, capture_output=True, text=True, check=True).stdout.strip().splitlines()
-
-# Returns whether the given path is a directory.
-def is_dir(path):
-    return os.path.isdir(path)
+    # print(command)
+    result = subprocess.run(command, capture_output=True, text=True, check=True).stdout.strip()
+    return result.splitlines()
 
 # Converts a list of file paths into a list of directories (omitting those that aren't).
 def dirs(paths):
-    return list(filter(lambda p: is_dir(f"{p}"), paths))
+    return list(filter(lambda p: os.path.isdir(p), paths))
 
 # Converts a list of Bazel targets into a unique list of top-level paths.
 def to_paths(targets, exclude=None):
