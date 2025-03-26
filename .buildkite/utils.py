@@ -34,6 +34,18 @@ def command_step(key, emoji, label, commands=[], plugins=[], depends_on=None):
     
     return step
 
+# Defines a command test that builds, tests, and annotates a given Bazel package.
+def build_test_and_annotate(package, depends_on=None):
+    return command_step(package, "bazel", f"Build and test //{package}/...", [
+        f"bazel build //{package}/... --build_event_json_file=bazel-events-{package}.json",
+        f"bazel test //{package}/...",
+    ], [{
+        "mcncl/bazel-annotate#v0.1.0": {
+            "bep_file": f"bazel-events-{package}.json",
+            "skip_if_no_bep": True,
+        }
+    }], depends_on)
+
 # Converts a Python dictionary into a JSON string.
 def to_json(data, indent=None):
     return json.dumps(data, indent=indent)
