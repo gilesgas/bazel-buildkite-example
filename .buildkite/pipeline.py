@@ -8,8 +8,8 @@ def run(command):
         command, capture_output=True, text=True, check=True
     ).stdout.strip()
 
-def make_step(emoji, label, commands=[], plugins=[]):
-    step = {"label": f":{emoji}: {label}", "commands": commands}
+def make_step(key, emoji, label, commands=[], plugins=[]):
+    step = {"key": key, "label": f":{emoji}: {label}", "commands": commands}
 
     if len(plugins) > 0:
         step[plugins] = {"plugins": plugins}
@@ -39,7 +39,7 @@ buildable_dirs = [item for item in changed_dirs if item in group_targets(bazel_p
 
 # For every changed path, build and test all targets.
 for path in buildable_dirs:
-    step = make_step("bazel", f"Build and test //{path}", [
+    step = make_step(path, "bazel", f"Build and test //{path}/...", [
         f"bazel build //{path}/...",
         f"bazel test //{path}/..."
     ])
@@ -56,10 +56,11 @@ for path in buildable_dirs:
         to_build = [item for item in affected_paths if item not in changed_paths]
 
         for dep in to_build:
-            next_step = make_step("bazel", f"Build and test //{dep}", [
-                f"bazel build //{path}/...",
-                f"bazel test //{path}/..."
+            next_step = make_step(dep, "bazel", f"Build and test //{dep}/...", [
+                f"bazel build //{dep}/...",
+                f"bazel test //{dep}/..."
             ])
+            next_step["depends_on"] = path
             step["commands"].append(f"""echo '{json.dumps({"steps": [next_step]})}' | buildkite-agent pipeline upload""")
 
     steps.append(step)
