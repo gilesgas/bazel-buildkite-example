@@ -1,8 +1,12 @@
 load("@rules_python//python:defs.bzl", "py_binary", "py_test")
+load("@pip//:requirements.bzl", "requirement")
 
 py_binary(
     name = "main",
     srcs = ["main.py"],
+    deps = [
+        requirement("pyyaml")
+    ],
 )
 
 py_test(
@@ -10,6 +14,7 @@ py_test(
     srcs = ["test_main.py"],
     deps = [
         ":main",
+        requirement("pyyaml")
     ],
     imports = ["."],
 )
