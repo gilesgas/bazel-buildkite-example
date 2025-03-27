@@ -65,7 +65,7 @@ def make_pipeline_step(package, depends_on=None):
         [
             {
                 # https://github.com/buildkite-plugins/bazel-annotate-buildkite-plugin
-                "bazel-annotate#v0.1.1": {
+                "bazel-annotate#v0.1.0": {
                     "bep_file": f"bazel-events.json",
                 }
             }
