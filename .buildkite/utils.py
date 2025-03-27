@@ -37,7 +37,8 @@ def command_step(key, emoji, label, commands=[], plugins=[], depends_on=None):
 # Defines a command test that builds, tests, and annotates a given Bazel package.
 def build_test_and_annotate(package, depends_on=None):
     return command_step(package, "bazel", f"Build and test //{package}/...", [
-        f"bazel test //{package}/... --build_event_json_file=bazel-events-{package}.json",
+        f"bazel test //{package}/...",
+        f"bazel build //{package}/... --build_event_json_file=bazel-events-{package}.json",
     ], [{
         "buildkite-plugins/bazel-annotate#v0.1.0": {
             "bep_file": f"bazel-events-{package}.json",

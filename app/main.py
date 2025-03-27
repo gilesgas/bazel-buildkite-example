@@ -6,5 +6,3 @@ def greet():
 
 
 print(greet())
-
-# sahldfahslfk
