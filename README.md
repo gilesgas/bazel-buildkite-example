@@ -4,11 +4,13 @@ An example that builds a simple Python monorepo with Bazel and Buildkite! :kite:
 
 [![Build status](https://badge.buildkite.com/57e0fc02c633be7eae646cb9b212cbf24043ba1618f89b6384.svg)](https://buildkite.com/nunciato/bazel-buildkite-example)
 
-This simple hello-world example uses Bazel to build and test and a Python library (a `py_library` package, in Bazel parlance) and a Python script (or `py_binary`, as they say). The binary depends on the library, and the library gets built and packaged (by Bazel) as a Python wheel.
+This simple hello-world example uses Bazel to build and test and a Python library (a `py_library` package, in Bazel parlance) and a Python script (or `py_binary`). The binary depends on the library, and the library gets built and packaged (by Bazel) as a Python wheel.
 
-The repo is also configured with a Buildkite [pipeline](https://buildkite.com/nunciato/bazel-buildkite-example) that uses [`bazel query`](https://bazel.build/query/quickstart) and Buildkite [dynamic pipelines](https://buildkite.com/docs/pipelines/configure/dynamic-pipelines) to compute a pipeline definition at runtime based on the content of each commit. Bazel-built Python packages are also uploaded as Buildkite [build artifacts](https://buildkite.com/docs/pipelines/configure/artifacts). 
+The repo is configured with a Buildkite [pipeline](https://buildkite.com/nunciato/bazel-buildkite-example) that combines [`bazel query`](https://bazel.build/query/quickstart) with Buildkite [dynamic pipelines](https://buildkite.com/docs/pipelines/configure/dynamic-pipelines) to compute a pipeline definition at runtime based on the content of each commit. A [Buildkite plugin](https://github.com/buildkite-plugins/bazel-annotate-buildkite-plugin) also converts [Bazel Event Protocol (BEP)](https://bazel.build/remote/bep) output into Buildkite [annotations](https://buildkite.com/docs/apis/rest-api/annotations) and appends them to each build. Python packages are uploaded as Buildkite [artifacts](https://buildkite.com/docs/pipelines/configure/artifacts). 
 
 [![The Buildkite pipeline that builds this repository](https://github.com/user-attachments/assets/896f7bf7-9387-4f72-a27f-0f25e78f16a5)](https://buildkite.com/nunciato/bazel-buildkite-example)
+
+## Build all packages
 
 ```bash
 $ bazel build //...
@@ -19,6 +21,42 @@ INFO: Elapsed time: 0.127s, Critical Path: 0.00s
 INFO: 1 process: 1 internal.
 INFO: Build completed successfully, 1 total action
 ```
+
+## Build individual packages
+
+```bash
+$ bazel build //library/...     
+                                             
+INFO: Analyzed 4 targets (1 packages loaded, 2167 targets configured).
+INFO: Found 4 targets...
+INFO: Elapsed time: 0.477s, Critical Path: 0.00s
+INFO: 1 process: 1 internal.
+INFO: Build completed successfully, 1 total action
+
+$ bazel build //app/...    
+INFO: Analyzed 2 targets (42 packages loaded, 417 targets configured).
+INFO: Found 2 targets...
+INFO: Elapsed time: 0.651s, Critical Path: 0.31s
+INFO: 9 processes: 9 internal.
+INFO: Build completed successfully, 9 total actions
+```
+
+## Query for package's reverse dependencies
+
+```bash
+$ bazel query "rdeps(//..., //library/...)"
+
+//app:main
+//app:test_main
+//library:hello
+//library:hello_wheel
+//library:hello_wheel.dist
+//library:hello_wheel.publish
+//library:hello_wheel_dist
+//library:test_hello
+```
+
+## Run all tests 
 
 ```bash
 $ bazel test //...
@@ -48,8 +86,32 @@ OK
 Executed 0 out of 2 tests: 2 tests pass.
 ```
 
-```bash
-$ bazel run //app:main --ui_event_filters=-INFO --noshow_progress --show_result=0
+## Generate the Buildkite pipeline
 
-The Python package says, 'Hi!'
+And annotate the build with some custom Markdown.
+
+![An image of a Buidkite annotation created from BEP output.](https://github.com/user-attachments/assets/2debc75f-5553-4f50-8366-f02bda6f7660)
+
+```bash
+$ python3 .buildkite/pipeline.py
+
+{
+    "steps": [
+        {
+            "label": ":bazel: Build and test //library/...",
+            "commands": [
+                "bazel test //library/...",
+                "bazel build //library/... --build_event_json_file=bazel-events.json",
+            ],
+            "plugins": [
+                {
+                    "bazel-annotate#v0.1.0": {
+                        "bep_file": "bazel-events.json",
+                        "skip_if_no_bep": true
+                    }
+                }
+            ]
+        }
+    ]
+}
 ```
