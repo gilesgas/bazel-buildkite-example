@@ -35,8 +35,8 @@ for pkg in changed_packages:
         # Find the library's reverse dependencies.
         reverse_deps = run(["bazel", "query", f"rdeps(//..., //{pkg}/...)"])
 
-        # Filter this list to exclude any package that already belong to the
-        # changed_packages set. (There's no need to build them a second time.)
+        # Filter this list to exclude any package that already belongs to the
+        # changed_packages set. (There's no need to build these a second time.)
         reverse_deps_to_build = [
             p for p in to_paths(reverse_deps, pkg) if p not in changed_packages
         ]
@@ -44,13 +44,13 @@ for pkg in changed_packages:
         for dep in reverse_deps_to_build:
             rdep_step = make_pipeline_step(dep, pkg)
 
-            # Append a step to the changed_package's list to build and test the
-            # reverse dependency also. 
+            # Append a step at runtime to the changed_package's list to build
+            # and test the reverse dependency also. 
             package_step["commands"].append(
                 f"""echo '{to_json({"steps": [rdep_step]})}' | buildkite-agent pipeline upload"""
             )
 
-    # Append this step to the list of steps 
+    # Add this package step to the pipeline.
     steps.append(package_step)
 
 # Emit the pipeline as JSON to be uploaded to Buildkite.

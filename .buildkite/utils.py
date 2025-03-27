@@ -52,7 +52,7 @@ def command_step(key, emoji, label, commands=[], plugins=[], depends_on=None):
 
 
 # Returns a Buildkite `command` step that builds, tests, and annotates (using
-# the official Bazel-annotation plugin) a given Bazel package.
+# our Bazel-annotation plugin) a given Bazel package.
 def make_pipeline_step(package, depends_on=None):
     return command_step(
         package,
