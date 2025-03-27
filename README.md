@@ -86,6 +86,18 @@ OK
 Executed 0 out of 2 tests: 2 tests pass.
 ```
 
+## Visualize a target graph
+
+For example, to generate a PNG of the `//app:main` target's dependencies:
+
+```bash
+$ bazel query --noimplicit_deps 'deps(//app:main)' --output graph | dot -Tpng -o graph.png
+```
+
+![A PNG image of the //app:main target's dependencies](https://github.com/user-attachments/assets/049eebde-cfc9-4497-a7d2-e7e0f1764253)
+
+Requires [GraphViz](https://graphviz.org/).
+
 ## Generate the Buildkite pipeline
 
 And annotate the build with some custom Markdown.

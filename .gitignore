@@ -2,6 +2,7 @@
 bazel-*
 venv
 __pycache__
+graph.*
 
 # User-specific .bazelrc.
 user.bazelrc
