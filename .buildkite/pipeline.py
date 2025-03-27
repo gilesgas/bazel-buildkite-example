@@ -16,7 +16,7 @@ changed_packages = [p for p in changed_dirs if p in to_paths(all_packages)]
 
 # For each changed Bazel package, assemble a pipeline step programmatically to
 # build and test all of its targets.
-# 
+#
 # Additionally, if the package defines one or more Python libraries, query the
 # Bazel graph to assemble a list of each library's reverse dependencies (i.e.,
 # the Bazel packages that depend on it), adding a step to the Buildkite pipeline
@@ -45,7 +45,7 @@ for pkg in changed_packages:
             rdep_step = make_pipeline_step(dep, pkg)
 
             # Append a step at runtime to the changed_package's list to build
-            # and test the reverse dependency also. 
+            # and test the reverse dependency also.
             package_step["commands"].append(
                 f"""echo '{to_json({"steps": [rdep_step]})}' | buildkite-agent pipeline upload"""
             )
