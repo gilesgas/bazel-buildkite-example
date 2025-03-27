@@ -45,8 +45,8 @@ def command_step(key, emoji, label, commands=[], plugins=[], depends_on=None):
     if len(plugins) > 0:
         step["plugins"] = plugins
 
-    if depends_on is not None:
-        step["depends_on"] = depends_on
+    # if depends_on is not None:
+    #     step["depends_on"] = depends_on
 
     return step
 
