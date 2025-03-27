@@ -42,7 +42,7 @@ for pkg in changed_packages:
         ]
 
         for dep in reverse_deps_to_build:
-            rdep_step = make_pipeline_step(dep, pkg)
+            rdep_step = make_pipeline_step(dep)
 
             # Append a step at runtime to the changed_package's list to build
             # and test the reverse dependency also.
