@@ -86,6 +86,23 @@ OK
 Executed 0 out of 2 tests: 2 tests pass.
 ```
 
+## Run the app
+
+```bash
+$ bazel run //app:main
+
+INFO: Analyzed target //app:main (0 packages loaded, 0 targets configured).
+INFO: Found 1 target...
+Target //app:main up-to-date:
+  bazel-bin/app/main
+INFO: Elapsed time: 0.245s, Critical Path: 0.01s
+INFO: 1 process: 1 internal.
+INFO: Build completed successfully, 1 total action
+INFO: Running command line: bazel-bin/app/main
+
+The Python library says: 'Hello, world!'
+```
+
 ## Visualize a target graph
 
 For example, to generate a PNG of the `//app:main` target's dependencies:
@@ -100,7 +117,7 @@ Requires [GraphViz](https://graphviz.org/).
 
 ## Generate the Buildkite pipeline
 
-And annotate the build with some custom Markdown.
+Also annotates the build with custom Markdown driven by Bazel's BEP output:
 
 ![An image of a Buidkite annotation created from BEP output.](https://github.com/user-attachments/assets/2debc75f-5553-4f50-8366-f02bda6f7660)
 
@@ -110,16 +127,31 @@ $ python3 .buildkite/pipeline.py
 {
     "steps": [
         {
-            "label": ":bazel: Build and test //library/...",
+            "key": "app",
+            "label": ":bazel: Build and test //app/...",
             "commands": [
-                "bazel test //library/...",
-                "bazel build //library/... --build_event_json_file=bazel-events.json",
+                "bazel test //app/...",
+                "bazel build //app/... --build_event_json_file=bazel-events.json"
             ],
             "plugins": [
                 {
                     "bazel-annotate#v0.1.0": {
-                        "bep_file": "bazel-events.json",
-                        "skip_if_no_bep": true
+                        "bep_file": "bazel-events.json"
+                    }
+                }
+            ]
+        },
+        {
+            "key": "library",
+            "label": ":bazel: Build and test //library/...",
+            "commands": [
+                "bazel test //library/...",
+                "bazel build //library/... --build_event_json_file=bazel-events.json"
+            ],
+            "plugins": [
+                {
+                    "bazel-annotate#v0.1.0": {
+                        "bep_file": "bazel-events.json"
                     }
                 }
             ]
@@ -127,3 +159,5 @@ $ python3 .buildkite/pipeline.py
     ]
 }
 ```
+
+:point_up: In this example, both the `app` and `library` packages were modified in the latest commit. 
