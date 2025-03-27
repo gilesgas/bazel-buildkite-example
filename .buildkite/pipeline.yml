@@ -2,7 +2,6 @@ env:
   BUILDKITE_PLUGINS_ALWAYS_CLONE_FRESH: true
 steps:
   - key: generate
-    depends_on: init
     label: ":python: Compute the pipeline with Python"
     commands:
       - python3 .buildkite/pipeline.py | buildkite-agent pipeline upload
