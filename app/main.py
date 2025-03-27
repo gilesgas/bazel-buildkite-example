@@ -1,10 +1,8 @@
-from package.hello import say_hi
+from library.hello import say_hello
 
-def greet():
-    response = say_hi()
-    return f"The Python package says, '{response}'"
+def hi_there():
+    response = say_hello()
+    return f"Hey! there's a message from the Python library: '{response}'"
 
 
-print(greet())
-
-# kaksdf
+print(hi_there())

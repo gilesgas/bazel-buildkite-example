@@ -4,7 +4,7 @@ py_binary(
     name = "main",
     srcs = ["main.py"],
     deps = [
-        "//package:hello",
+        "//library:hello",
     ],
 )
 
