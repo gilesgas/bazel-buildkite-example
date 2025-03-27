@@ -55,7 +55,7 @@ def make_pipeline_step(package, depends_on=None):
         ],
         [
             {
-                "bazel-annotate#v0.1.0": {
+                "bazel-annotate#v0.1.1": {
                     "bep_file": f"bazel-events.json",
                     "skip_if_no_bep": True,
                 }
