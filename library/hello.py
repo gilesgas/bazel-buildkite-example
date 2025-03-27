@@ -1,3 +1,3 @@
 # Returns a friendly greeting.
-def say_hello():
+def get_greeting():
     return "Hello, world!"

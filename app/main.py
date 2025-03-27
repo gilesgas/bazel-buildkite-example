@@ -1,8 +1,8 @@
-from library.hello import say_hello
+from library.hello import get_greeting
 
-def hi_there():
-    response = say_hello()
-    return f"Hey! there's a message from the Python library: '{response}'"
+def say_hello():
+    response = get_greeting()
+    return f"The Python library says: '{response}'"
 
 
-print(hi_there())
+print(say_hello())

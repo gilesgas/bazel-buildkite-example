@@ -1,6 +1,6 @@
 import unittest
-from main import hi_there
+from main import get_greeting
 
 class TestMain(unittest.TestCase):
     def test_generate_pipeline(self):
-        self.assertEqual(hi_there(), "Hey! There's a message from the Python library: 'Hello, world!'")
+        self.assertEqual(get_greeting(), "The Python library says: 'Hello, world!'")
