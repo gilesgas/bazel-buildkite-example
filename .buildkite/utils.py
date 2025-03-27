@@ -5,7 +5,7 @@ def run(command):
     return subprocess.run(command, capture_output=True, text=True, check=True).stdout.strip().splitlines()
 
 # Converts a list of file paths into a list of directories (omitting those that aren't).
-def dirs(paths):
+def only_dirs(paths):
     return list(filter(lambda p: os.path.isdir(p), paths))
 
 # Converts a list of Bazel targets into a unique list of top-level paths.
@@ -38,10 +38,10 @@ def command_step(key, emoji, label, commands=[], plugins=[], depends_on=None):
 def build_test_and_annotate(package, depends_on=None):
     return command_step(package, "bazel", f"Build and test //{package}/...", [
         f"bazel test //{package}/...",
-        f"bazel build //{package}/... --build_event_json_file=bazel-events-{package}.json",
+        f"bazel build //{package}/... --build_event_json_file=bazel-events.json",
     ], [{
-        "buildkite-plugins/bazel-annotate#v0.1.0": {
-            "bep_file": f"bazel-events-{package}.json",
+        "bazel-annotate#v0.1.0": {
+            "bep_file": f"bazel-events.json",
             "skip_if_no_bep": True,
         }
     }], depends_on)

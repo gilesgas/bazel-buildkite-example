@@ -1,16 +1,17 @@
-from utils import run, to_paths, build_test_and_annotate, to_json, dirs
+from utils import run, only_dirs, to_paths, build_test_and_annotate, to_json
 
 # By default, do nothing.
 steps = []
 
 # Get a list of directories changed in the most recent commit.
 changed_paths = run(["git", "diff-tree", "--name-only", "HEAD~1..HEAD"])
-changed_dirs = dirs(changed_paths)
+changed_dirs = only_dirs(changed_paths)
 
 # Query the Bazel workspace for a list of all packages (libraries, binaries, etc.).
 all_packages = run(["bazel", "query", "'/...'"])
 
-# Using both lists, assemble a list of affected Bazel packages.
+# Using both lists, figure out which packages need to be built, so we can build
+# pipeline steps only for those.
 changed_packages = [p for p in changed_dirs if p in to_paths(all_packages)]
 
 # For each changed package, build and test all of its targets.
