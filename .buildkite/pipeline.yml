@@ -1,0 +1,5 @@
+steps:
+  - key: generate
+    label: ":python: Compute the pipeline with Python"
+    commands:
+      - python3 .buildkite/pipeline.py | buildkite-agent pipeline upload
