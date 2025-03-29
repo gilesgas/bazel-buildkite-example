@@ -36,11 +36,11 @@ def to_paths(targets, exclude=None):
 
 
 # Returns a Buildkite `command` step (as a Python dictionary to be serialized as
-# JSON later) given a key, emoji, label, list of commands, and optional list of
+# JSON later) given an emoji, label, list of commands, and optional list of
 # plugins. See the Buildkite docs for more options.
 # https://buildkite.com/docs/pipelines/configure/defining-steps
-def command_step(key, emoji, label, commands=[], plugins=[]):
-    step = {"key": key, "label": f":{emoji}: {label}", "commands": commands}
+def command_step(emoji, label, commands=[], plugins=[]):
+    step = {"label": f":{emoji}: {label}", "commands": commands}
 
     if len(plugins) > 0:
         step["plugins"] = plugins
@@ -52,7 +52,6 @@ def command_step(key, emoji, label, commands=[], plugins=[]):
 # our Bazel-annotation plugin) a given Bazel package.
 def make_pipeline_step(package):
     return command_step(
-        package,
         "bazel",
         f"Build and test //{package}/...",
         [
