@@ -1,6 +1,11 @@
 import sys
-from utils import make_pipeline_step, to_json
+from utils import get_package_step, to_json
 
-pkg = sys.argv[1:]
-step = make_pipeline_step(pkg)
-print(to_json({"steps": [step]}, 4))
+# Read the list of packages from the command line.
+pkgs = sys.argv[1:]
+
+# Make a build step for each package.
+steps = [get_package_step(pkg) for pkg in pkgs]
+
+# Emit the list of steps as JSON.
+print(to_json({"steps": [steps]}, 4))

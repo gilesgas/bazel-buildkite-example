@@ -2,7 +2,7 @@ import json, os, subprocess
 
 # Returns a Buildkite `command` step that builds, tests, and annotates (using
 # our Bazel-annotation plugin) a given Bazel package.
-def make_pipeline_step(package):
+def get_package_step(package):
     return command_step(
         "bazel",
         f"Build and test //{package}/...",
@@ -46,7 +46,7 @@ def filter_dirs(paths):
 # into this:
 #   app
 #   library
-def to_paths(targets, exclude=None):
+def get_paths(targets, exclude=None):
     groups = {directory.lstrip("/") for directory, _, _ in (target.rpartition(":") for target in targets)}
     if exclude:
         groups.discard(exclude)

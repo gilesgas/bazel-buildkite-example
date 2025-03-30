@@ -1,4 +1,4 @@
-from utils import run, filter_dirs, to_paths, make_pipeline_step, to_json
+from utils import run, filter_dirs, get_paths, get_package_step, to_json
 
 # By default, do nothing.
 steps = []
@@ -12,7 +12,7 @@ all_packages = run(["bazel", "query", "'/...'"])
 
 # Using both lists, figure out which packages need to be built. The goal is to
 # assemble a pipeline that builds only those.
-changed_packages = [p for p in changed_dirs if p in to_paths(all_packages)]
+changed_packages = [p for p in changed_dirs if p in get_paths(all_packages)]
 
 # For each changed Bazel package, assemble a pipeline step programmatically to
 # build and test all of its targets.
@@ -25,7 +25,7 @@ changed_packages = [p for p in changed_dirs if p in to_paths(all_packages)]
 for pkg in changed_packages:
 
     # Make a step that runs `bazel build` and `bazel test` for this package.
-    package_step = make_pipeline_step(pkg)
+    package_step = get_package_step(pkg)
 
     # Use Bazel to query the package for any Python libraries.
     libraries = run(["bazel", "query", f"kind(py_library, '//{pkg}/...')"])
@@ -38,18 +38,16 @@ for pkg in changed_packages:
         # Filter this list to exclude any package that already belongs to the
         # changed_packages set. (There's no need to build these a second time.)
         reverse_deps_to_build = [
-            p for p in to_paths(reverse_deps, pkg) if p not in changed_packages
+            p for p in get_paths(reverse_deps, pkg) if p not in changed_packages
         ]
 
-        # Append a step at runtime to the changed_package's list to build
-            # and test the reverse dependency also.
         for dep in reverse_deps_to_build:
-            rdep_step = make_pipeline_step(dep)
+            rdep_step = get_package_step(dep)
 
             # Append a step at runtime to the changed_package's list to build
             # and test the reverse dependency also.
             package_step["commands"].extend([
-                "echo 'Adding a step to the pipeline...'",
+                f"echo 'Adding a step to the pipeline for {dep}...'",
                 f"python3 .buildkite/step.py {dep} | buildkite-agent pipeline upload"
             ])
 
