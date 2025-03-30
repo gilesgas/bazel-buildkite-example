@@ -8,4 +8,4 @@ pkgs = sys.argv[1:]
 steps = [get_package_step(pkg) for pkg in pkgs]
 
 # Emit the list of steps as JSON.
-print(to_json({"steps": [steps]}, 4))
+print(to_json({"steps": steps}, 4))
