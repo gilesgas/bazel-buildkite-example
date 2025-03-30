@@ -50,7 +50,7 @@ for pkg in changed_packages:
             # and test the reverse dependency also.
             package_step["commands"].extend([
                 "echo 'Adding a step to the pipeline...'",
-                f"python3 .buildkite/step.py {dep}"
+                f"python3 .buildkite/step.py {dep} | buildkite-agent pipeline upload"
             ])
 
     # Add this package step to the pipeline.
