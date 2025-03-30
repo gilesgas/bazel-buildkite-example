@@ -10,16 +10,12 @@ changed_dirs = filter_dirs(changed_paths)
 # Query the Bazel workspace for a list of all packages (libraries, binaries, etc.).
 all_packages = run(["bazel", "query", "'/...'"])
 
-# Using both lists, figure out which packages need to be built. The goal is to
-# assemble a pipeline that builds only those.
+# Using both lists, figure out which packages need to be built.
 changed_packages = [p for p in changed_dirs if p in get_paths(all_packages)]
 
 # For each changed Bazel package, assemble a pipeline step programmatically to
-# build and test all of its targets.
-#
-# If the package contains any Python libraries, also query their own Bazel
-# graphs to build a list of their reverse dependencies (i.e., the Bazel packages
-# that depend on them), adding a step to the pipeline at runtime for each one.
+# build and test all of its targets. For Python libraries, add a follow-up step
+# to be run later that builds and tests their reverse dependencies as well.
 for pkg in changed_packages:
 
     # Make a step that runs `bazel build` and `bazel test` for this package.
@@ -41,12 +37,11 @@ for pkg in changed_packages:
         for dep in reverse_deps_to_build:
             rdep_step = get_package_step(dep)
 
-            # Add a command to the changed library's command list to generate a
-            # new build step (at runtime) for the dependent package and append
-            # it to the pipeline.
+            # Add a command to the library's command list to generate and append
+            # a build step (at runtime) for the dependent package as well.
             package_step["commands"].extend([
                 f"echo 'Generating and uploading a follow-up step to build {dep}...'",
-                f"python3 .buildkite/generate-step.py {dep} | buildkite-agent pipeline upload"
+                f"python3 .buildkite/step.py {dep} | buildkite-agent pipeline upload"
             ])
 
     # Add this package step to the pipeline.
