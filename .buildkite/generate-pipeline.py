@@ -46,7 +46,7 @@ for pkg in changed_packages:
             # it to the pipeline.
             package_step["commands"].extend([
                 f"echo 'Generating and uploading a follow-up step to build {dep}...'",
-                f"python3 .buildkite/step.py {dep} | buildkite-agent pipeline upload"
+                f"python3 .buildkite/generate-step.py {dep} | buildkite-agent pipeline upload"
             ])
 
     # Add this package step to the pipeline.
