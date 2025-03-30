@@ -41,14 +41,17 @@ for pkg in changed_packages:
             p for p in to_paths(reverse_deps, pkg) if p not in changed_packages
         ]
 
+        # Append a step at runtime to the changed_package's list to build
+            # and test the reverse dependency also.
         for dep in reverse_deps_to_build:
             rdep_step = make_pipeline_step(dep)
 
             # Append a step at runtime to the changed_package's list to build
             # and test the reverse dependency also.
-            package_step["commands"].append(
-                f"""echo '{to_json({"steps": [rdep_step]})}' | buildkite-agent pipeline upload"""
-            )
+            package_step["commands"].extend([
+                "echo 'Adding a step to the pipeline...'",
+                f"python3 .buildkite/step.py {dep}"
+            ])
 
     # Add this package step to the pipeline.
     steps.append(package_step)
