@@ -10,12 +10,7 @@ def get_package_step(package):
             f"bazel test //{package}/...",
             f"bazel build //{package}/... --build_event_json_file=bazel-events.json",
         ],
-        [{
-            # https://github.com/buildkite-plugins/bazel-annotate-buildkite-plugin
-            "bazel-annotate#v0.1.0": {
-                "bep_file": f"bazel-events.json",
-            },
-        }],
+        [{ "bazel-annotate#v0.1.0": { "bep_file": f"bazel-events.json"} }],
     )
 
 # Returns a Buildkite `command` step (as a Python dictionary to be serialized as
