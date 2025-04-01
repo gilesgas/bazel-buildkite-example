@@ -1,7 +1,6 @@
 import json, os, subprocess
 
-# Returns a Buildkite `command` step that builds, tests, and annotates (using
-# our Bazel-annotation plugin) a given Bazel package.
+# Returns a Buildkite `command` step that builds, tests, and annotates a Bazel package.
 def get_package_step(package):
     return command_step(
         "bazel",
@@ -13,10 +12,7 @@ def get_package_step(package):
         [{ "bazel-annotate#v0.1.0": { "bep_file": f"bazel-events.json"} }],
     )
 
-# Returns a Buildkite `command` step (as a Python dictionary to be serialized as
-# JSON later) given an emoji, label, list of commands, and optional list of
-# plugins. See the Buildkite docs for more options.
-# https://buildkite.com/docs/pipelines/configure/defining-steps
+# Returns a Buildkite `command` step (as a Python dictionary.
 def command_step(emoji, label, commands=[], plugins=[]):
     step = {"label": f":{emoji}: {label}", "commands": commands}
     if plugins:  # Simplified conditional check
