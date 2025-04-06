@@ -8,4 +8,4 @@
 #
 # To learn more about Buildkite agent lifecycle hooks like this one:
 # https://buildkite.com/docs/agent/v3/hooks
-brewsdf install bazelisk || true
+brew install bazelisk || true
